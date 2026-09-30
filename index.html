@@ -42,10 +42,11 @@ input{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--l
 </style></head><body><main id="app"></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-const CATS={Groceries:"#4c9f70",Dining:"#e0954f",Transport:"#4f86c6",Home:"#8b6fbf",Bills:"#c9585c",Fun:"#d96fa0",Health:"#3fa7b5",Shopping:"#b8a13a",Other:"#8a938e"};
+const CATS={Groceries:"#4c9f70",Dining:"#e0954f",Transport:"#4f86c6",Home:"#8b6fbf",Bills:"#c9585c",Fun:"#d96fa0",Health:"#3fa7b5",Shopping:"#b8a13a",Other:"#8a938e",Mortgage:"#7a5c3e",Electric:"#e6c02f",Gas:"#e07b39",Water:"#3b9ad9",Insurance:"#5c6bc0","Car payment":"#607d8b","Cell phone":"#26a69a"};
 const INC=["Salary","Other income"];
 const $=id=>document.getElementById(id);
-const fmt=n=>(n<0?"-":"")+"$"+Math.abs(Math.round(n)).toLocaleString();
+const fmt=n=>(n<0?"-":"")+"$"+Math.abs(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+function limitFor(c,m=S.month){let b=null;(S.brows||[]).forEach(r=>{if(r.cat==c&&r.month<=m&&(!b||r.month>b.month))b=r});return b?b.amount:0}
 const iso=d=>d.toISOString().slice(0,10);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let S={month:new Date().toISOString().slice(0,7),kind:"expense",cat:"Groceries",tx:[],limits:{},names:{},uid:null,shared:false};
@@ -85,11 +86,11 @@ function render(){
   <div class="card"><div class="stats"><div><b class="pos">${fmt(earned)}</b><span>Income</span></div><div><b>${fmt(spent)}</b><span>Spent</span></div><div><b class="${earned-spent>=0?"pos":"neg"}">${fmt(earned-spent)}</b><span>Left</span></div></div></div>
   <div class="card"><div class="seg"><button data-k="expense" class="${S.kind=="expense"?"on":""}">Expense</button><button data-k="income" class="${S.kind=="income"?"on":""}">Income</button></div>
   <div class="chips">${cats.map(c=>`<button class="chip ${c==S.cat?"on":""}" data-c="${c}" style="${c==S.cat?"background:"+(CATS[c]||"var(--acc)"):""}">${c}</button>`).join("")}</div>
-  <div class="add"><input id="amt" type="number" inputmode="decimal" placeholder="$0" value="${keep.a}"><input id="note" class="note" placeholder="Note (optional)" value="${esc(keep.n)}"></div>
+  <div class="add"><input id="amt" type="number" step="0.01" inputmode="decimal" placeholder="$0.00" value="${keep.a}"><input id="note" class="note" placeholder="Note (optional)" value="${esc(keep.n)}"></div>
   <button class="go" id="add">Add ${S.kind}</button></div>
   <div class="card"><h2>Where it went</h2>${sorted.length?`<div class="donutw">${donut(sorted,spent)}<div class="legend">${sorted.map(([c,v])=>`<div><span class="dot" style="background:${CATS[c]}"></span>${c}<span style="margin-left:auto">${fmt(v)}</span></div>`).join("")}</div></div>`:'<div class="empty">No spending yet this month</div>'}</div>
-  <div class="card"><h2>Budgets</h2>${Object.keys(CATS).map(c=>{const v=by[c]||0,l=S.limits[c]||0,p=l?Math.min(100,v/l*100):0;
-   return `<div class="bar"><div class="r"><span><span class="dot" style="background:${CATS[c]};display:inline-block"></span> ${c} <span style="color:var(--mut)">${fmt(v)} of</span></span><input class="lim" data-l="${c}" type="number" inputmode="decimal" placeholder="set" value="${l||""}"></div><div class="track"><div class="fill" style="width:${l?p:0}%;background:${v>l&&l?"var(--bad)":CATS[c]}"></div></div></div>`}).join("")}</div>
+  <div class="card"><h2>Budgets</h2>${Object.keys(CATS).map(c=>{const v=by[c]||0,l=limitFor(c),p=l?Math.min(100,v/l*100):0;
+   return `<div class="bar"><div class="r"><span><span class="dot" style="background:${CATS[c]};display:inline-block"></span> ${c} <span style="color:var(--mut)">${fmt(v)} of</span></span><input class="lim" data-l="${c}" type="number" step="0.01" inputmode="decimal" placeholder="set" value="${l||""}"></div><div class="track"><div class="fill" style="width:${l?p:0}%;background:${v>l&&l?"var(--bad)":CATS[c]}"></div></div></div>`}).join("")}</div>
   <div class="card"><h2>6-month trend</h2>${trend()}</div>
   <div class="card"><h2>Transactions</h2>${mt.length?mt.map(t=>`<div class="tx"><span class="dot" style="background:${CATS[t.cat]||"var(--acc)"}"></span><div class="m"><b>${esc(t.cat)}</b>${t.note?" · "+esc(t.note):""}<small>${new Date(t.date+"T12:00").toLocaleDateString(undefined,{month:"short",day:"numeric"})}${S.names[t.by]?" · "+esc(S.names[t.by]):""}</small></div><b class="${t.kind=="income"?"pos":""}">${t.kind=="income"?"+":""}${fmt(t.amount)}</b><button class="x" data-d="${t.id}">✕</button></div>`).join(""):'<div class="empty">Nothing yet — add your first one above</div>'}</div>`;
   $("pm").onclick=()=>{S.month=mshift(S.month,-1);render()};
@@ -97,13 +98,13 @@ function render(){
   document.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{S.kind=b.dataset.k;render()});
   document.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{S.cat=b.dataset.c;render()});
   document.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>del(b.dataset.d));
-  document.querySelectorAll(".lim").forEach(i=>i.onchange=()=>setLimit(i.dataset.l,parseFloat(i.value)||0));
+  document.querySelectorAll(".lim").forEach(i=>i.onchange=()=>setLimit(i.dataset.l,Math.round((parseFloat(i.value)||0)*100)/100));
   $("add").onclick=add;
   $("amt").onkeydown=$("note").onkeydown=e=>{if(e.key=="Enter")add()};
   if(focus&&$(focus))$(focus).focus();
 }
 // ---- CONFIG: paste from Supabase > Project Settings > API ----
-const SUPABASE_URL="https://ekelextwaqakswkjshyz.supabase.co", SUPABASE_KEY="sb_publishable_7lmfB5WjhaDAS0Mv6X_4pA_qcBHW4XH";
+const SUPABASE_URL="PASTE_PROJECT_URL", SUPABASE_KEY="PASTE_ANON_PUBLIC_KEY";
 // ---------------------------------------------------------------
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 function login(){
@@ -114,11 +115,11 @@ function login(){
 async function load(){
   const [t,b]=await Promise.all([sb.from("transactions").select("*"),sb.from("budgets").select("*")]);
   if(t.data)S.tx=t.data.map(r=>{S.names[r.by_name]=r.by_name;return{...r,amount:+r.amount,by:r.by_name,ts:Date.parse(r.created_at)}});
-  if(b.data){S.limits={};b.data.forEach(r=>S.limits[r.cat]=+r.amount)}
+  if(b.data)S.brows=b.data.map(r=>({cat:r.cat,month:r.month,amount:+r.amount}));
   render();
 }
 async function add(){
-  const amount=parseFloat($("amt").value);if(!(amount>0)){$("amt").focus();return}
+  const amount=Math.round(parseFloat($("amt").value)*100)/100;if(!(amount>0)){$("amt").focus();return}
   const row={amount,kind:S.kind,cat:S.cat,note:$("note").value.trim(),date:S.month==new Date().toISOString().slice(0,7)?iso(new Date()):S.month+"-01",by_name:S.me};
   $("amt").value="";$("note").value="";
   const {error}=await sb.from("transactions").insert(row);
@@ -127,8 +128,8 @@ async function add(){
 }
 async function del(id){const {error}=await sb.from("transactions").delete().eq("id",id);if(error)alert(error.message);load()}
 async function setLimit(cat,v){
-  S.limits={...S.limits,[cat]:v};
-  const {error}=await sb.from("budgets").upsert({cat,amount:v});if(error)alert(error.message);
+  S.brows=(S.brows||[]).filter(r=>!(r.cat==cat&&r.month==S.month)).concat({cat,month:S.month,amount:v});
+  const {error}=await sb.from("budgets").upsert({cat,month:S.month,amount:v},{onConflict:"cat,month"});if(error)alert(error.message);
   render();
 }
 sb.auth.onAuthStateChange((_e,session)=>{
