@@ -42,7 +42,7 @@ input{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--l
 </style></head><body><main id="app"></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-const CATS={Groceries:"#4c9f70",Transport:"#4f86c6",Decor:"#8b6fbf",Fun:"#d96fa0",Dining:"#e0954f",Health:"#3fa7b5",Shopping:"#b8a13a",Other:"#8a938e",Mortgage:"#7a5c3e",Electric:"#e6c02f",Gas:"#e07b39",Water:"#3b9ad9",Insurance:"#5c6bc0","Car payment":"#607d8b","Cell phone":"#26a69a",Internet:"#c9585c",Charity:"#fcfcfc",Invest:"#ff1111",Education:"#ccfa31};
+const CATS={Groceries:"#4c9f70",Transport:"#4f86c6",Decor:"#8b6fbf",Fun:"#d96fa0",Dining:"#e0954f",Health:"#3fa7b5",Shopping:"#b8a13a",Other:"#8a938e",Mortgage:"#7a5c3e",Electric:"#e6c02f",Gas:"#e07b39",Water:"#3b9ad9",Insurance:"#5c6bc0","Car payment":"#607d8b","Cell phone":"#26a69a",Internet:"#c9585c",Charity:"#fcfcfc",Invest:"#ff1111",Education:"#ccfa31"};
 const INC=["STW","Cleaning","Other income"];
 const $=id=>document.getElementById(id);
 const fmt=n=>(n<0?"-":"")+"$"+Math.abs(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
