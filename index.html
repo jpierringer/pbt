@@ -139,7 +139,7 @@ async function add(){
 async function del(id){const {error}=await sb.from("transactions").delete().eq("id",id);if(error)alert(error.message);load()}
 async function setLimit(cat,v){
   S.brows=(S.brows||[]).filter(r=>!(r.cat==cat&&r.month==S.month)).concat({cat,month:S.month,amount:v});
-  const {error}=await sb.from("budgets").upsert({cat,month:S.month,amount:v},{onConflict:"cat,month"});if(error)alert(error.message);
+  const {error}=await sb.from("budgets").upsert({cat,month:S.month,amount:v},{onConflict:"household_id,cat,month"});if(error)alert(error.message);
   render();
 }
 sb.auth.onAuthStateChange((_e,session)=>{
